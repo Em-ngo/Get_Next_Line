@@ -1,0 +1,64 @@
+#include "get_next_line.h"
+
+static char	*find_return(char **str)
+{
+	int		i;
+	char	*s1;
+	char	*tmp;
+
+	i = 0;
+	while ((*str)[i] != '\n' && (*str)[i] != '\0')
+		i++;
+	s1 = ft_substr(*str, 0, i + 1);
+	if ((*str)[i] == '\n' && (*str)[i + 1] != '\0')
+		tmp = ft_strdup(&(*str)[i + 1]);
+	else
+		tmp = NULL;
+	free(*str);
+	*str = tmp;
+	if (!*str && s1[0] == '\0')
+	{
+		free(s1);
+		return (NULL);
+	}
+	return (s1);
+}
+
+void	find_line(int fd, char **str, char **buff)
+{
+	int		i;
+	char	*tmp;
+
+	i = 1;
+	while (i > 0)
+	{
+		i = read(fd, *buff, BUFFER_SIZE);
+		(*buff)[i] = '\0';
+		if (!*str || !**str)
+			*str = ft_strdup(*buff);
+		else
+		{
+			tmp = ft_strjoin(*str, *buff);
+			free(*str);
+			*str = tmp;
+		}
+		if (ft_check (*str, '\n'))
+			break ;
+	}
+	return ;
+}
+
+char	*get_next_line(int fd)
+{
+	char		*buff;
+	static char	*str;
+
+	if (fd < 0 || BUFFER_SIZE < 1 || read(fd, "", 0) == -1)
+		return (NULL);
+	buff = malloc(sizeof(char) * (BUFFER_SIZE + 1));
+	if (!buff)
+		return (NULL);
+	find_line(fd, &str, &buff);
+	free (buff);
+	return (find_return(&str));
+}
